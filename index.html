@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Maison Connectée</title>
+
+<!-- Librairie MQTT via WebSocket -->
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
+<!-- Styles CSS -->
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f6f8;
+  text-align: center;
+  margin: 0;
+  padding: 0;
+}
+h1 { color: #333; margin: 20px; }
+.container {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 15px;
+  margin: 20px;
+}
+.card {
+  background: white;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+button {
+  width: 100%;
+  height: 45px;
+  font-size: 16px;
+  margin-top: 5px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.on { background: #4CAF50; color: white; }
+.off { background: #F44336; color: white; }
+.state {
+  margin-top: 10px;
+  font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+<h1>Commande des Lampes</h1>
+
+<div class="container">
+  <div class="card">
+    <h3>Lampe 1</h3>
+    <button class="on" onclick="commande(1,'ON')">ON</button>
+    <button class="off" onclick="commande(1,'OFF')">OFF</button>
+    <div class="state" id="state1">État : ?</div>
+  </div>
+
+  <div class="card">
+    <h3>Lampe 2</h3>
+    <button class="on" onclick="commande(2,'ON')">ON</button>
+    <button class="off" onclick="commande(2,'OFF')">OFF</button>
+    <div class="state" id="state2">État : ?</div>
+  </div>
+
+  <div class="card">
+    <h3>Lampe 3</h3>
+    <button class="on" onclick="commande(3,'ON')">ON</button>
+    <button class="off" onclick="commande(3,'OFF')">OFF</button>
+    <div class="state" id="state3">État : ?</div>
+  </div>
+
+  <div class="card">
+    <h3>Lampe 4</h3>
+    <button class="on" onclick="commande(4,'ON')">ON</button>
+    <button class="off" onclick="commande(4,'OFF')">OFF</button>
+    <div class="state" id="state4">État : ?</div>
+  </div>
+
+  <div class="card">
+    <h3>Lampe 5</h3>
+    <button class="on" onclick="commande(5,'ON')">ON</button>
+    <button class="off" onclick="commande(5,'OFF')">OFF</button>
+    <div class="state" id="state5">État : ?</div>
+  </div>
+</div>
+
+<script>
+// Connexion au broker MQTT (HiveMQ public)
+const client = mqtt.connect("wss://broker.hivemq.com:8884/mqtt");
+
+// Abonnement aux topics d'état
+client.on('connect', () => {
+  for(let i=1; i<=5; i++){
+    client.subscribe(`maison/lamp${i}/state`);
+  }
+});
+
+// Fonction pour commander les lampes
+function commande(num, etat) {
+  client.publish(`maison/lamp${num}/cmd`, etat);
+}
+
+// Réception des messages d'état
+client.on('message', (topic, message) => {
+  const num = topic.match(/\d+/)[0]; // récupère le numéro de la lampe
+  document.getElementById("state"+num).innerText = "État : " + message.toString();
+});
+</script>
+
+</body>
+</html>
